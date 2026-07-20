@@ -76,8 +76,22 @@ function filterPayload(payload, argument) {
 function runLoon() {
   try {
     const payload = JSON.parse($response.body);
-    const filtered = filterPayload(payload, $argument);
-    $done({ body: JSON.stringify(filtered) });
+    const argument = typeof $argument === "undefined" ? "" : $argument;
+    const keywordCount = parseKeywords(argument).length;
+    const beforeCount = Array.isArray(payload?.data) ? payload.data.length : 0;
+    const filtered = filterPayload(payload, argument);
+    const afterCount = Array.isArray(filtered?.data) ? filtered.data.length : 0;
+    const headers = { ...($response.headers || {}) };
+
+    delete headers["Content-Length"];
+    delete headers["content-length"];
+    headers["X-Zhihu-Keyword-Filter"] =
+      `applied; keywords=${keywordCount}; removed=${beforeCount - afterCount}`;
+
+    console.log(
+      `[ZhihuKeywordFilter] keywords=${keywordCount}, removed=${beforeCount - afterCount}`
+    );
+    $done({ headers, body: JSON.stringify(filtered) });
   } catch (error) {
     console.log(`[ZhihuKeywordFilter] ${error}`);
     $done({});
