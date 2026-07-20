@@ -10,22 +10,32 @@ function normalizeText(value) {
 }
 
 function parseKeywords(argument) {
-  let value = typeof argument === "string" ? argument.trim() : "";
+  const values = [];
 
-  // Loon normally passes the value without quotes. These fallbacks also accept
-  // a JSON string or array so the script remains tolerant of parser changes.
-  if (value) {
-    try {
-      const parsed = JSON.parse(value);
-      if (Array.isArray(parsed)) value = parsed.join(",");
-      else if (typeof parsed === "string") value = parsed;
-    } catch (_) {
-      value = value.replace(/^(["'])(.*)\1$/, "$2");
+  function collect(value) {
+    if (Array.isArray(value)) {
+      for (const item of value) collect(item);
+      return;
     }
+    if (typeof value !== "string") return;
+
+    const text = value.trim();
+    if (!text) return;
+    try {
+      const parsed = JSON.parse(text);
+      if (parsed !== text) {
+        collect(parsed);
+        return;
+      }
+    } catch (_) {
+      // A plain comma-separated string is also supported.
+    }
+    values.push(text.replace(/^(["'])(.*)\1$/, "$2"));
   }
 
+  collect(argument);
   return [...new Set(
-    value
+    values.join(",")
       .split(/[,，\n]+/)
       .map((item) => normalizeText(item).trim())
       .filter(Boolean)
