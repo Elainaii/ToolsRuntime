@@ -17,6 +17,10 @@ function parseKeywords(argument) {
       for (const item of value) collect(item);
       return;
     }
+    if (value && typeof value === "object") {
+      for (const item of Object.values(value)) collect(item);
+      return;
+    }
     if (typeof value !== "string") return;
 
     const text = value.trim();
@@ -118,12 +122,12 @@ function runLoon() {
     headers["X-Zhihu-Keyword-Filter"] =
       `applied; keywords=${keywordCount}; removed=${removedCount}`;
     headers["X-Zhihu-Keyword-Filter-Log"] =
-      `version=1.1.3; status=ok; argument-type=${argumentInfo.type}; ` +
+      `version=1.1.4; status=ok; argument-type=${argumentInfo.type}; ` +
       `argument-format=${argumentInfo.format}; argument-length=${argumentInfo.length}; ` +
       `keywords=${keywordCount}; before=${beforeCount}; after=${afterCount}; removed=${removedCount}`;
 
     console.log(
-      `[ZhihuKeywordFilter] version=1.1.3, status=ok, ` +
+      `[ZhihuKeywordFilter] version=1.1.4, status=ok, ` +
       `argumentType=${argumentInfo.type}, argumentFormat=${argumentInfo.format}, ` +
       `argumentLength=${argumentInfo.length}, keywords=${keywordCount}, ` +
       `before=${beforeCount}, after=${afterCount}, removed=${removedCount}`
@@ -135,8 +139,8 @@ function runLoon() {
     delete headers["content-length"];
     headers["X-Zhihu-Keyword-Filter"] = "applied; status=error";
     headers["X-Zhihu-Keyword-Filter-Log"] =
-      `version=1.1.3; status=error; error=${error?.name || "Error"}`;
-    console.log(`[ZhihuKeywordFilter] version=1.1.3, status=error, ${error}`);
+      `version=1.1.4; status=error; error=${error?.name || "Error"}`;
+    console.log(`[ZhihuKeywordFilter] version=1.1.4, status=error, ${error}`);
     $done({ headers });
   }
 }
